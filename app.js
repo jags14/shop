@@ -5,8 +5,9 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const productRouter = require('./api/routes/products');
 const orderRouter = require('./api/routes/orders');
-const multer = require('multer');
-const upload = multer({dest: 'uploads/'});
+const userRouter = require('./api/routes/users');
+// const multer = require('multer');
+// const upload = multer({dest: 'uploads/'});
 
 mongoose.connect('mongodb+srv://node-shop:' + process.env.MONGO_ATLAS_PW + '@cluster0.gtko4.mongodb.net/?retryWrites=true&w=majority', {
 
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
 // Handle Incoming requests
 app.use('/products', productRouter);
 app.use('/orders', orderRouter);
+app.use('/users', userRouter);
 
 // Handling errors
 app.use((req, res, next) => {
