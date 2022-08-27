@@ -5,6 +5,41 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
+router.get('/', (req, res, next) => {
+    User.find()
+        .exec()
+        .then(users => {
+            if(users){
+                const totalUsers = users.length;
+                const response = users;
+                res.status(200).json({
+                    num_of_users: totalUsers,
+                    user: response.map(eachUser => {
+                        return {
+                            email: eachUser.email,
+                            _id: eachUser._id,
+                            request: {
+                                type: 'GET',
+                                url: 'http://localhost:3000/users/' + eachUser._id
+                            }
+
+                        }
+                    })
+                })
+            } else {
+                res.status(404).json({
+                    message: 'Users not found'
+                })
+            }
+        })
+        .catch(err => {
+            return res.status(404).json({
+                error: err
+            })
+        })
+
+})
+
 // sign up route
 router.post('/signup', (req, res, next) => {
     User.find({email: req.body.email})
