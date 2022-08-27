@@ -2,8 +2,43 @@ const express = require('express');
 const { default: mongoose } = require('mongoose');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
-
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+
+router.get('/', (req, res, next) => {
+    User.find()
+        .exec()
+        .then(users => {
+            if(users){
+                const totalUsers = users.length;
+                const response = users;
+                res.status(200).json({
+                    num_of_users: totalUsers,
+                    user: response.map(eachUser => {
+                        return {
+                            email: eachUser.email,
+                            _id: eachUser._id,
+                            request: {
+                                type: 'GET',
+                                url: 'http://localhost:3000/users/' + eachUser._id
+                            }
+
+                        }
+                    })
+                })
+            } else {
+                res.status(404).json({
+                    message: 'Users not found'
+                })
+            }
+        })
+        .catch(err => {
+            return res.status(404).json({
+                error: err
+            })
+        })
+
+})
 
 // sign up route
 router.post('/signup', (req, res, next) => {
@@ -62,14 +97,43 @@ router.post('/login', (req, res, next) => {
                     })  
                 }
                 if(result) {
+                    const token = jwt.sign({
+                            email: user[0].email,
+                            userId: user[0]._id
+                        },
+                        process.env.JWT_KEY,
+                        {
+                            expiresIn: "1h"
+                        }
+                        );
                     res.status(200).json({
                         message: "User found",
-                        user: user
+                        user_token: token
                     })
                 }
             })
         })
-        .catch()
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            })
+        })
+})
+
+router.delete('/:userId', (req, res, next) => {
+    User.deleteOne({_id: req.params.userId})
+        .exec()
+        .then(result => {
+            res.status(200).json({
+                message: "User deleted"
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            })
+        })
 })
 
 module.exports = router;
