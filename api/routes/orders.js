@@ -2,34 +2,10 @@ const express = require('express');
 const { default: mongoose } = require('mongoose');
 const router = express.Router();
 const checkAuth = require('../middleware/check-auth');
-const Order = require('../models/order')
+const Order = require('../models/order');
+const getAllOrders = require('../controllers/orders');
 
-router.get('/', checkAuth, (req, res, next) => {
-    
-    Order.find()
-        .populate('product', 'name')
-        .exec()
-        .then((data) => {
-            // const totalOrders = data.length;
-            // console.log("orders list: ", data);
-            res.status(200).json({
-                totalOrders: data.length,
-                orders: data.map(order => {
-                    return {
-                        order: order,
-                        request: {
-                            type: 'GET',
-                            url: 'http://localhost:3000/orders/' + order._id
-                        }
-                    }
-                })
-
-            });
-        })
-        .catch((err) => {
-            res.status(404).json({error: err})
-        })
-});
+router.get('/', checkAuth, getAllOrders);
 
 router.post('/', checkAuth, (req, res, next) => {
     const order = new Order({
